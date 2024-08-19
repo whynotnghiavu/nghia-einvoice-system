@@ -1,0 +1,131 @@
+version: "3.4"
+
+services:
+
+  nats:
+    image: nats
+    restart: always
+    ports:
+      - 4222:4222
+    logging:
+      driver: none
+
+  mysql:
+    image: mysql
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: nghia
+      MYSQL_DATABASE: nghia
+      MYSQL_USER: test_user
+      MYSQL_PASSWORD: test_user
+      MYSQL_TCP_PORT: 3306
+    command: --init-file /init.sql
+    volumes:
+      - ./mysql/init.sql:/init.sql
+    logging:
+      driver: none
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: nghia
+    logging:
+      driver: none
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - 1025:1025
+      - 8025:8025
+    logging:
+      driver: none
+
+  tct:
+    build: ../microservices/tct-demo
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - ../microservices/tct-demo:/usr/src/app
+    command: npm run start:dev
+    environment:
+      PORT: ${TCT_PORT}
+
+  api_gateway:
+    build: ../microservices/api-gateway
+    restart: always
+    ports:
+      - 3001:3001
+    volumes:
+      - ../microservices/api-gateway:/usr/src/app
+    command: npm run start:dev
+    environment:
+      PORT: ${APP_PORT}
+
+      NATS_HOST: ${NATS_HOST}
+
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+
+  user:
+    build: ../microservices/user-service
+    restart: always
+    volumes:
+      - ../microservices/user-service:/usr/src/app
+    command: npm run start:dev
+    environment:
+      APP_NAME: ${APP_NAME}
+      APP_PORT: ${APP_PORT}
+      APP_DOMAIN: ${APP_DOMAIN}
+
+      NATS_HOST: ${NATS_HOST}
+
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: user
+
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+
+      TCT_HOST: ${TCT_HOST}
+      TCT_PORT: ${TCT_PORT}
+
+      VERIFY_EMAIL_SECRET: ${VERIFY_EMAIL_SECRET}
+      VERIFY_RESET_PASSWORD_SECRET: ${VERIFY_RESET_PASSWORD_SECRET}
+
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+
+  invoice:
+    build: ../microservices/invoice-service
+    restart: always
+    volumes:
+      - ../microservices/invoice-service:/usr/src/app
+    command: npm run start:dev
+    environment:
+      APP_NAME: ${APP_NAME}
+      APP_PORT: ${APP_PORT}
+      APP_DOMAIN: ${APP_DOMAIN}
+
+      NATS_HOST: ${NATS_HOST}
+
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: invoice
+
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+
+      TCT_HOST: ${TCT_HOST}
+      TCT_PORT: ${TCT_PORT}
