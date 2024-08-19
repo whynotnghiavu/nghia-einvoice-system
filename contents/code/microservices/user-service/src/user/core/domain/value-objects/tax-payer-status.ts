@@ -1,0 +1,6 @@
+export enum TaxPayerStatus {
+  VERIFY_EMAIL = 'VERIFY_EMAIL',
+  REGISTER_USB_TOKEN = 'REGISTER_USB_TOKEN',
+  ACTIVE = 'ACTIVE',
+  DELETED = 'DELETED',
+}
