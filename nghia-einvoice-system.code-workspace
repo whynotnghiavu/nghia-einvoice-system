@@ -5,7 +5,7 @@
       "path": "."
     },
     {
-      "path": "contents"
+      "path": "contents/code/docker"
     }
   ],
   "settings": {}
